@@ -1,0 +1,156 @@
+10) Se pide demostrar utilizando razonamiento ecuacional e inducción estructural que para todo
+n, m :: Int positivos y x :: Doc,
+
+indentar n (indentar m x) = indentar (n+m) x
+
+La demostración debe ser entregada en un archivo indentar.txt junto con el resto del código.
+Se sugiere demostrar y usar los siguientes lemas:
+
+indentar k Vacio = Vacio para todo k :: Int positivo.
+indentar k (Texto s d) = Texto s (indentar k d) para todo k :: Int positivo,
+s :: String y d :: Doc.
+indentar m (Linea k d) = Linea (m+k) (indentar m d) para todo m, k :: Int positivos y d :: Doc.
+
+Recordemos tipos
+
+data Doc
+  = Vacio
+  | Texto String Doc
+  | Linea Int Doc
+  deriving (Eq, Show)
+
+Queremos demostrar que 
+indentar n (indentar m x) = indentar (n + m) x
+
+Definiciones:
+
+{i0} indentar i d = foldDoc Vacio Texto (\n acc -> Linea (n + i) acc) d 
+foldDoc cVacio fTexto fLinea t = case t of         {fold}
+              Vacio     -> cVacio                       
+              Texto s d -> fTexto s (rec d)             
+              Linea n d -> fLinea n (rec d)             
+            where rec d = foldDoc cVacio fTexto fLinea 
+
+
+Demostramos lemas:
+Nota: en las funciones lambda de nuestro foldDoc usamos la letra s para referirnos al string.
+Para diferenciarla de la s del enunciado, la notaremos sL (por s Lambda).
+
+∀k :: Int positivo.
+{Lema 1}indentar k Vacio = Vacio 
+
+indentar k Vacio 
+= foldDoc Vacio Texto (\n acc -> Linea (n + k) acc) Vacio {i0}
+= case Vacio of        
+              Vacio     -> Vacio                       
+              Texto s d -> Texto s (rec d)             
+              Linea n d -> (\n acc -> Linea (n + k) acc) n (rec d)             
+            where rec d = foldDoc Vacio Texto (\n acc -> Linea (n + k) acc)                          {fold}
+= Vacio                                                                                              {case Vacio}
+
+∀k :: Int positivo, s :: String y d :: Doc.
+{Lema 2} indentar k (Texto s d) = Texto s (indentar k d) 
+
+indentar k (Texto s d) =
+foldDoc Vacio Texto (\n acc -> Linea (n + k) acc) (Texto s d)                         {i0}
+case (Texto s d) of        
+              Vacio     -> Vacio                       
+              Texto s d -> Texto s (rec d)             
+              Linea n d -> (\n acc -> Linea (n + k) acc) n (rec d)             
+            where rec = foldDoc Vacio Texto (\n acc -> Linea (n + k) acc)             {fold}
+Texto s (foldDoc Vacio Texto (\n acc -> Linea (n + k) acc) d)                         {case Texto}
+Texto s (indentar k d)                                                                {i0} ✓ 
+
+
+∀m, k :: Int positivos y d :: Doc.
+{Lema 3} indentar m (Linea k d) = Linea (m + k) (indentar m d) 
+
+indentar m (Linea k d) =
+foldDoc Vacio Texto (\n acc -> Linea (n + m) acc) (Linea k d)                             {i0}
+case (Linea k d)  of        
+              Vacio     -> Vacio                       
+              Texto s d -> Texto s (rec d)             
+              Linea n d -> (\n acc -> Linea (n + k) acc) n (rec d)             
+            where rec d = foldDoc Vacio Texto (\n acc -> Linea (n + k) acc)               {fold}
+(\n acc -> Linea (n + m) acc) k (foldDoc Vacio Texto (\n acc -> Linea (n + m) acc)  d)    {case Linea}
+Linea (k + m) (foldDoc Vacio Texto (\n acc -> Linea (n + m) acc)  d)                      {β}x2
+Linea (k + m) (indentar m d)                                                              {i0} 
+Linea (m + k) (indentar m d)                                                              {Int} (Conmutatividad de suma) ✓
+
+
+Vamos a hacer inducción sobre x.
+Definimos P(x) = ∀n :: Int. ∀m :: Int. indentar n (indentar m x) = indentar (n + m) 
+Queremos probar que vale ∀x::Doc P(x)
+
+Por lema de generación sabemos que basta probar los casos donde x es Vacio, Linea o Texto. Veamos cada caso por separado.
+
+Caso x = Vacio
+
+indentar n (indentar m Vacio) = indentar (n + m) Vacio
+
+Tomemos el lado izquierdo de la ecuación 
+indentar n (indentar m Vacio) 
+= indentar n (Vacio)               {Lema 1}
+= Vacio                            {Lema 1}
+
+
+Tomemos ahora el lado derecho de la ecuación 
+indentar (n + m) Vacio
+indentar k Vacio                   {Int} (Suma donde k = n + m)
+= Vacio                            {Lema 1}
+
+Por lo tanto ambos lados dan vacío, se cumple el caso base ✓
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+Vamos a ver el caso Inductivo.
+
+Caso Texto s d
+
+Tenemos como HI p(d) = ∀n,m :: Int. indentar n (indentar m d) = indentar (n + m) d
+
+QVQ también vale ∀s :: String. P(Texto(s d))
+
+indentar n (indentar m (Texto s d)) = indentar (n + m) (Texto s d)
+
+Tomemos el lado izquierdo de la ecuación 
+indentar n (indentar m (Texto s d)) 
+= indentar n (Texto s (indentar m d))               {Lema 2}
+= Texto s (indentar n (indentar m d))               {Lema 2}
+= Texto s (indentar (n + m) d)                      {HI}           
+
+
+Tomemos ahora el lado derecho de la ecuación 
+
+indentar (n + m) (Texto s d)
+= Texto s (indentar (n + m) d)                      {Lema 2}
+
+Por lo tanto ambos lados dan lo mismo, se cumple la igualdad y vemos que p(d) => p(Texto s d) ✓
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+Caso x es Linea k d
+
+Tenemos como HI p(d) = ∀n,m :: Int. indentar n (indentar m d) = indentar (n + m) d
+
+QVQ tambien vale ∀k :: Int P(Linea(k d))
+
+indentar n (indentar m (Linea k d)) = indentar (n + m) (Linea k d)
+
+Tomemos el lado izquierdo de la ecuación 
+indentar n (indentar m (Linea k d))
+= indentar n (Linea (m + k) (indentar m d))                 {Lema 3}
+= Linea (n + (m + k)) (indentar n (indentar m d))           {Lema 3}
+= Linea (n + (m + k)) (indentar (n + m) d)                  {HI}
+= Linea (n + m + k) (indentar (n + m) d)                    {Int} (Conmutatividad de suma)
+
+
+Tomemos ahora el lado derecho de la ecuación 
+
+indentar (n + m) (Linea k d) 
+= Linea ((n + m) + k) (indentar (n + m) d)                  {Lema 3}
+= Linea (n + m + k) (indentar (n + m) d)                    {Int} (Conmutatividad de suma)
+
+Por lo tanto ambos lados dan lo mismo, se cumple la igualdad  y vemos que p(d) => p(Linea k d) ✓
+
+Entonces probamos el caso donde d = Vacio y ambos casos recursivos p(d) => p(Texto s d) ∧ p(Linea k d)
+Por ende, podemos concluir que p(d) vale ∀d :: Doc 
