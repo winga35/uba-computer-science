@@ -1,7 +1,7 @@
 # Computer Science — Universidad de Buenos Aires
 
 Coursework and projects from my Computer Science degree (Licenciatura en Ciencias de la Computación) at FCEN, Universidad de Buenos Aires.
-Most of these are group projects. Where that is the case, it is noted — my own contribution is described per project.
+Most of these are group projects. Collaborators are credited per project
 
 ---
 
