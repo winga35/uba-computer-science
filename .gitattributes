@@ -1,0 +1,4 @@
+# Vendored third-party code: excluded from GitHub's language statistics.
+**/gtest-1.8.1/**    linguist-vendored
+**/stb_image.h       linguist-vendored
+**/stb_image_write.h linguist-vendored
